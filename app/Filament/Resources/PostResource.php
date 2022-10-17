@@ -64,6 +64,9 @@ class PostResource extends Resource
             ->filters([
                 Filter::make('published')
                     ->query(fn (Builder $query): Builder => $query->where('published_at', '<=', \Carbon\Carbon::now()->format('Y-m-d'))),
+                Filter::make('unpublished')
+                    ->label('Not Published')
+                    ->query(fn (Builder $query): Builder => $query->whereNull('published_at')),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
