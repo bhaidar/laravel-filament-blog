@@ -18,6 +18,8 @@ use Filament\Resources\Table;
 use Filament\Tables;
 use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
+use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 
 class PostResource extends Resource
@@ -60,7 +62,8 @@ class PostResource extends Resource
                 TextColumn::make('published_at'),
             ])
             ->filters([
-                //
+                Filter::make('published')
+                    ->query(fn (Builder $query): Builder => $query->where('published_at', '<=', \Carbon\Carbon::now()->format('Y-m-d'))),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
