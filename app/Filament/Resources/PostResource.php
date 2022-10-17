@@ -3,15 +3,21 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\PostResource\Pages;
-use App\Filament\Resources\PostResource\RelationManagers;
 use App\Models\Post;
-use Filament\Forms;
+use Closure;
+use Filament\Forms\Components\Card;
+use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\RichEditor;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
+use Filament\Forms\Components\TextInput;
 use Filament\Resources\Form;
 use Filament\Resources\Resource;
 use Filament\Resources\Table;
 use Filament\Tables;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
+use Filament\Tables\Columns\TextColumn;
+use Illuminate\Support\Str;
 
 class PostResource extends Resource
 {
@@ -23,7 +29,22 @@ class PostResource extends Resource
     {
         return $form
             ->schema([
-                //
+                Card::make()
+                    ->schema([
+                        Select::make('category_id')
+                            ->relationship('category', 'name')
+                            ->required(),
+                        TextInput::make('title')
+                            ->reactive()
+                            ->afterStateUpdated(function (Closure $set, $state) {
+                                $set('slug', Str::slug($state));
+                            })
+                            ->required(),
+                        TextInput::make('slug')->required(),
+                        SpatieMediaLibraryFileUpload::make('thumbnail')->collection('posts'),
+                        RichEditor::make('content'),
+                        DateTimePicker::make('published_at'),
+                    ]),
             ]);
     }
 
@@ -31,7 +52,11 @@ class PostResource extends Resource
     {
         return $table
             ->columns([
-                //
+                TextColumn::make('id')->sortable(),
+                TextColumn::make('title')->limit('50')->sortable(),
+                TextColumn::make('slug')->limit('50'),
+                SpatieMediaLibraryImageColumn::make('thumbnail')->collection('posts'),
+                TextColumn::make('published_at'),
             ])
             ->filters([
                 //
@@ -43,14 +68,14 @@ class PostResource extends Resource
                 Tables\Actions\DeleteBulkAction::make(),
             ]);
     }
-    
+
     public static function getRelations(): array
     {
         return [
             //
         ];
     }
-    
+
     public static function getPages(): array
     {
         return [
@@ -58,5 +83,5 @@ class PostResource extends Resource
             'create' => Pages\CreatePost::route('/create'),
             'edit' => Pages\EditPost::route('/{record}/edit'),
         ];
-    }    
+    }
 }
